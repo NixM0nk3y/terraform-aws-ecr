@@ -120,6 +120,51 @@ data "aws_iam_policy_document" "resource_readonly_access" {
   }
 
   dynamic "statement" {
+    for_each = length(var.principals_codebuild) > 0 ? [1] : []
+
+    content {
+      sid    = "CodebuildECRImageCrossAccountRetrievalPolicy"
+      effect = "Allow"
+      actions = [
+        "ecr:GetDownloadUrlForLayer",
+        "ecr:BatchGetImage",
+        "ecr:BatchCheckLayerAvailability"
+      ]
+
+      principals {
+        type        = "Service"
+        identifiers = ["codebuild.amazonaws.com"]
+      }
+
+      condition {
+        test     = "StringLike"
+        values   = formatlist("arn:%s:codebuild:*:%s:project:*", data.aws_partition.current.partition, var.principals_codebuild)
+        variable = "aws:sourceArn"
+      }
+    }
+  }
+
+  dynamic "statement" {
+    for_each = length(var.principals_codebuild) > 0 ? [1] : []
+    content {
+      sid    = "CodeBuildAccessCrossAccount"
+      effect = "Allow"
+
+      principals {
+        type = "AWS"
+
+        identifiers = formatlist("arn:%s:iam::%s:root", data.aws_partition.current.partition, var.principals_codebuild)
+      }
+
+      actions = [
+        "ecr:GetDownloadUrlForLayer",
+        "ecr:BatchGetImage",
+        "ecr:BatchCheckLayerAvailability"
+      ]
+    }
+  }
+
+  dynamic "statement" {
     for_each = length(var.principals_lambda) > 0 ? [1] : []
 
     content {

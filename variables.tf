@@ -28,6 +28,12 @@ variable "principals_lambda" {
   default     = []
 }
 
+variable "principals_codebuild" {
+  type        = list(string)
+  description = "Principal account IDs of Codebuild Projects allowed to consume ECR"
+  default     = []
+}
+
 variable "scan_images_on_push" {
   type        = bool
   description = "Indicates whether images are scanned after being pushed to the repository (true) or not (false)"
